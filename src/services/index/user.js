@@ -3,7 +3,7 @@ import axios from "axios";
 export const signup = async ({ name, email, password }) => {
   try {
     const { data } = await axios.post(
-      "https://avante-css.onrender.com/api/v1/register",
+      "https://moticket-ng-blog.onrender.com/api/v1/register",
       {
         name,
         email,
@@ -21,7 +21,7 @@ export const signup = async ({ name, email, password }) => {
 export const login = async ({ email, password }) => {
   try {
     const { data } = await axios.post(
-      "https://avante-css.onrender.com/api/v1/login",
+      "https://moticket-ng-blog.onrender.com/api/v1/login",
       {
         email,
         password,
