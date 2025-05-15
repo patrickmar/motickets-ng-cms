@@ -6,15 +6,12 @@ function CommentCard() {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
-    // Fetch comments from API
     fetch("https://moticket-ng-blog.onrender.com")
       .then((response) => response.json())
       .then((data) => setComments(data))
       .catch((error) => console.log(error));
   }, []);
   const handleDelete = (commentId) => {
-    // Delete comment with the given ID
-    // Implement your delete logic here
     const updatedComments = comments.filter(
       (comment) => comment.id !== commentId
     );
