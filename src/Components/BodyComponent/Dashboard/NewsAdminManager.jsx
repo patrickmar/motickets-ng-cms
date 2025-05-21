@@ -36,6 +36,8 @@ const CardComponent = () => {
   const [image, setImage] = useState([]);
   const [showFields, setShowFields] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const [updateData, setUpdateData] = useState({
     postId: "",
     title: "",
@@ -153,6 +155,7 @@ const CardComponent = () => {
       title: post.title,
       caption: post.caption,
       description: post.description,
+      image: post.image, // Add this
       showDescription: post.showDescription,
     });
     setShowUpdateDialog(true);
@@ -163,51 +166,44 @@ const CardComponent = () => {
   };
 
   const handleUpdateCard = async () => {
-    if (selectedImage) {
-      const data = {
-        title: updateData.title,
-        caption: updateData.caption,
-        description: updateData.description,
-        image: image,
-      };
-      console.log(data);
-      const user = JSON.parse(localStorage.getItem("account"));
-      console.log(user);
-      console.log(user.token);
-      try {
-        const response = await axios.put(
-          Base_Url + UPDATE_POST + updateData.postId,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-        console.log(response.data);
+    setIsUpdating(true);
+    const user = JSON.parse(localStorage.getItem("account"));
+    const data = {
+      title: updateData.title,
+      caption: updateData.caption,
+      description: updateData.description,
+      image: selectedImage ? image : updateData.image,
+    };
 
-        const updatedPosts = posts.map((post) => {
-          if (post._id === response.data.data._id) {
-            console.log(response.data.data);
+    try {
+      const response = await axios.put(
+        Base_Url + UPDATE_POST + updateData.postId,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
 
-            return response.data.data;
-          }
-          return post;
-        });
+      const updatedPosts = posts.map((post) =>
+        post._id === response.data.data._id ? response.data.data : post
+      );
 
-        setPosts(updatedPosts);
-        setSelectedImage(null);
-        setUpdateData({
-          postId: "",
-          title: "",
-          caption: "",
-          description: "",
-          showDescription: false,
-        });
-        setShowUpdateDialog(false);
-      } catch (error) {
-        console.error("Error updating card:", error);
-      }
+      setPosts(updatedPosts);
+      setSelectedImage(null);
+      setUpdateData({
+        postId: "",
+        title: "",
+        caption: "",
+        description: "",
+        showDescription: false,
+      });
+      setShowUpdateDialog(false);
+    } catch (error) {
+      console.error("Error updating card:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -226,7 +222,7 @@ const CardComponent = () => {
         ) : (
           <>
             <input type="file" accept="image/*" onChange={handleImageSelect} />
-            {selectedImage && (
+            {selectedImage ? (
               <Card>
                 <CardMedia
                   component="img"
@@ -235,7 +231,17 @@ const CardComponent = () => {
                   alt="Selected Image"
                 />
               </Card>
-            )}
+            ) : updateData.image ? (
+              <Card>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={updateData.image}
+                  alt="Existing Image"
+                />
+              </Card>
+            ) : null}
+
             <TextField
               label="Title"
               name="title"
@@ -312,7 +318,7 @@ const CardComponent = () => {
         <DialogTitle>Update Card</DialogTitle>
         <DialogContent>
           <input type="file" accept="image/*" onChange={handleImageSelect} />
-          {selectedImage && (
+          {selectedImage ? (
             <Card>
               <CardMedia
                 component="img"
@@ -321,7 +327,17 @@ const CardComponent = () => {
                 alt="Selected Image"
               />
             </Card>
-          )}
+          ) : updateData.image ? (
+            <Card>
+              <CardMedia
+                component="img"
+                height="200"
+                image={updateData.image}
+                alt="Existing Image"
+              />
+            </Card>
+          ) : null}
+
           <TextField
             label="Title"
             name="title"
@@ -358,9 +374,9 @@ const CardComponent = () => {
           <Button
             onClick={handleUpdateCard}
             color="primary"
-            disabled={!selectedImage}
+            disabled={isUpdating || (!selectedImage && !updateData.image)}
           >
-            Update Card
+            {isUpdating ? "Updating..." : "Update Card"}
           </Button>
         </DialogActions>
       </Dialog>
